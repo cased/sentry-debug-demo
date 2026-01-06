@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sentry Debug Demo App
 
-## Getting Started
+A Next.js dashboard app designed to demonstrate the difference between Sentry Seer and Claude Code for debugging errors.
 
-First, run the development server:
+## Thesis
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Both tools have access to the same Sentry error data (stack traces, breadcrumbs, tags, etc.). The key differentiator is that Claude Code also has **full codebase context**, allowing it to:
+
+1. Trace errors to their root cause (not just where they surface)
+2. Understand data flow across files
+3. Read related code to understand intent
+4. Actually implement fixes
+
+## The App
+
+A simple analytics dashboard that displays:
+
+- User metrics chart (line chart)
+- Revenue breakdown (bar chart)
+- Activity feed (table)
+- Summary stats cards
+
+Data flows through several layers:
+```
+API Route → Data Transformer → Hook → Component
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Intentional Bugs
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Each bug is designed so the **stack trace points to the symptom, not the cause**.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Bug 1: Type Mismatch Across Boundaries
+- **Symptom**: Chart crashes with "Cannot read property 'map' of undefined"
+- **Location of error**: `components/UserMetricsChart.tsx`
+- **Actual cause**: `lib/transformers.ts` returns wrong shape when API returns empty array
+- **Why codebase context helps**: Need to see the transformer to understand the data contract
 
-## Learn More
+### Bug 2: Stale Closure in useEffect
+- **Symptom**: Dashboard shows stale data after filter change
+- **Location of error**: No error - just wrong behavior
+- **Actual cause**: `hooks/useDashboardData.ts` has missing dependency in useEffect
+- **Why codebase context helps**: Need to read the hook logic to spot the closure issue
 
-To learn more about Next.js, take a look at the following resources:
+### Bug 3: Null Propagation from Config
+- **Symptom**: "Cannot read property 'toFixed' of undefined" in revenue display
+- **Location of error**: `components/RevenueChart.tsx`
+- **Actual cause**: `lib/config.ts` has environment variable that's undefined, cascades through
+- **Why codebase context helps**: Need to trace where the value originates
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Bug 4: Race Condition in Parallel Fetches
+- **Symptom**: Intermittent "Data mismatch" error or wrong totals displayed
+- **Location of error**: `components/SummaryCards.tsx`
+- **Actual cause**: `hooks/useDashboardData.ts` has race condition when fetching multiple endpoints
+- **Why codebase context helps**: Need to see the async flow and understand timing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Bug 5: Off-by-One in Date Handling
+- **Symptom**: Chart shows data for wrong date range, or missing last day
+- **Location of error**: Appears correct but data is wrong
+- **Actual cause**: `lib/transformers.ts` uses `<` instead of `<=` when filtering dates
+- **Why codebase context helps**: Need to read the filter logic and understand the date boundaries
 
-## Deploy on Vercel
+## Demo Flow
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Trigger each bug in the running app
+2. Errors go to Sentry
+3. Ask Seer to diagnose
+4. Ask Claude Code (with Sentry skill) to diagnose
+5. Compare: Does each tool identify the root cause? Can it suggest the correct fix?
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tech Stack
+
+- Next.js 14 (App Router)
+- Recharts for charts
+- Tailwind CSS for styling
+- Sentry SDK for error tracking
+
+## Setup
+
+```bash
+npm install
+cp .env.example .env.local  # Add your Sentry DSN
+npm run dev
+```
+
+## Triggering Bugs
+
+Each bug can be triggered via the UI:
+
+- Bug 1: Click "Load Empty Dataset" button
+- Bug 2: Change date filter rapidly
+- Bug 3: Toggle "Use Custom Config" setting
+- Bug 4: Click "Refresh All" button repeatedly
+- Bug 5: Select date range ending today

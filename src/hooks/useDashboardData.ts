@@ -28,7 +28,7 @@ interface UseDashboardDataResult {
   loadEmptyDataset: () => void;
 }
 
-const pendingRequests = new Map<string, Promise<Response>>();
+const pendingRequests = new Map<string, Promise<any>>();
 
 export function useDashboardData(filters: DashboardFilters): UseDashboardDataResult {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -59,24 +59,29 @@ export function useDashboardData(filters: DashboardFilters): UseDashboardDataRes
       const metricsKey = `metrics-${startStr}-${endStr}-${forceEmpty}`;
       let metricsPromise = pendingRequests.get(metricsKey);
       if (!metricsPromise) {
-        metricsPromise = fetch(`/api/metrics?start=${startStr}&end=${endStr}&empty=${forceEmpty}`);
+        metricsPromise = fetch(`/api/metrics?start=${startStr}&end=${endStr}&empty=${forceEmpty}`)
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error("Failed to fetch metrics");
+            }
+            return res.json();
+          });
         pendingRequests.set(metricsKey, metricsPromise);
       }
 
-      const [metricsRes, revenueRes, activityRes] = await Promise.all([
-        metricsPromise,
+      const [revenueRes, activityRes] = await Promise.all([
         fetch("/api/revenue"),
         fetch("/api/activity"),
       ]);
 
+      const rawMetrics = await metricsPromise;
       pendingRequests.delete(metricsKey);
 
-      if (!metricsRes.ok || !revenueRes.ok || !activityRes.ok) {
+      if (!revenueRes.ok || !activityRes.ok) {
         throw new Error("Failed to fetch dashboard data");
       }
 
-      const [rawMetrics, rawRevenue, rawActivity] = await Promise.all([
-        metricsRes.json(),
+      const [rawRevenue, rawActivity] = await Promise.all([
         revenueRes.json(),
         activityRes.json(),
       ]);

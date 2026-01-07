@@ -28,7 +28,7 @@ interface RawActivityResponse {
 
 export function transformMetrics(raw: RawMetricsResponse): { data: MetricDataPoint[] } {
   if (!raw.data || raw.data.length === 0) {
-    return undefined as unknown as { data: MetricDataPoint[] };
+    return { data: [] };
   }
 
   return {

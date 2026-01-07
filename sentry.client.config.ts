@@ -1,5 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
+console.log("[Sentry] Initializing with DSN:", process.env.NEXT_PUBLIC_SENTRY_DSN ? "present" : "MISSING");
+
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   tracesSampleRate: 1.0,
@@ -9,5 +11,5 @@ Sentry.init({
     Sentry.replayIntegration(),
     Sentry.browserTracingIntegration(),
   ],
-  debug: false,
+  debug: true, // Enable debug mode to see what's happening
 });

@@ -9,6 +9,7 @@ import { SummaryCards } from "@/components/SummaryCards";
 import { UserMetricsChart } from "@/components/UserMetricsChart";
 import { RevenueChart } from "@/components/RevenueChart";
 import { ActivityFeed } from "@/components/ActivityFeed";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export default function Dashboard() {
   const [filters, setFilters] = useState<DashboardFilters>({
@@ -69,8 +70,12 @@ export default function Dashboard() {
             <SummaryCards data={data.summary} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <UserMetricsChart data={data.metrics} />
-              <RevenueChart data={data.revenue} />
+              <ErrorBoundary>
+                <UserMetricsChart data={data.metrics} />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <RevenueChart data={data.revenue} />
+              </ErrorBoundary>
             </div>
 
             <ActivityFeed data={data.activity} />

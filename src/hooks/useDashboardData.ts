@@ -83,7 +83,8 @@ export function useDashboardData(filters: DashboardFilters): UseDashboardDataRes
 
       // Transform data (Bug 1 triggers here on empty data)
       const metricsResult = transformMetrics(rawMetrics);
-      const metrics: MetricDataPoint[] = metricsResult?.data ?? [];
+      // BUG 1: No defensive check - if metricsResult is undefined, accessing .data throws
+      const metrics: MetricDataPoint[] = metricsResult.data;
 
       // Bug 3 cascades through here when useCustomConfig is true
       const multiplier = getRevenueMultiplier(filters.useCustomConfig);

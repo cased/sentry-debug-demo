@@ -20,16 +20,21 @@ const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
 export function RevenueChart({ data }: RevenueChartProps) {
   // BUG 3 surfaces here: When amount is NaN (from undefined multiplier),
-  // calling .toFixed() throws "Cannot read property 'toFixed' of undefined"
+  // the validation below throws an error
   // The root cause is in config.ts returning undefined for REVENUE_MULTIPLIER
 
-  const chartData = data.map((point) => ({
-    category: point.category,
-    // BUG 3: amount could be NaN, and formatting it causes errors
-    amount: point.amount,
-    formattedAmount: `$${point.amount.toFixed(2)}`,
-    growth: point.growth,
-  }));
+  const chartData = data.map((point) => {
+    // BUG 3: This validation throws when amount is NaN due to undefined multiplier
+    if (isNaN(point.amount)) {
+      throw new Error(`Invalid revenue amount for category: ${point.category}`);
+    }
+    return {
+      category: point.category,
+      amount: point.amount,
+      formattedAmount: `$${point.amount.toFixed(2)}`,
+      growth: point.growth,
+    };
+  });
 
   return (
     <div className="bg-white rounded-lg shadow p-6">

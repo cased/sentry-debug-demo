@@ -57,9 +57,10 @@ export function transformRevenue(
   raw: RawRevenueResponse,
   multiplier?: number
 ): RevenueDataPoint[] {
+  const effectiveMultiplier = multiplier ?? 1.0;
   return raw.categories.map((cat) => ({
     category: cat.name,
-    amount: cat.revenue * (multiplier as number),
+    amount: cat.revenue * effectiveMultiplier,
     growth: cat.yoy_growth,
   }));
 }

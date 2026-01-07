@@ -8,9 +8,9 @@ export const config = {
   refreshInterval: 30000,
 };
 
-export function getRevenueMultiplier(useCustomConfig: boolean): number | undefined {
+export function getRevenueMultiplier(useCustomConfig: boolean): number {
   if (useCustomConfig) {
-    return config.revenueMultiplier;
+    return config.revenueMultiplier ?? config.defaultMultiplier;
   }
   return config.defaultMultiplier;
 }

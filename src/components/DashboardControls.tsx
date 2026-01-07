@@ -38,7 +38,6 @@ export function DashboardControls({
         start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
       case "today":
-        // BUG 5 trigger: Setting end to today exposes the off-by-one error
         start = new Date(end);
         start.setHours(0, 0, 0, 0);
         break;

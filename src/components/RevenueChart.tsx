@@ -19,12 +19,7 @@ interface RevenueChartProps {
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
 export function RevenueChart({ data }: RevenueChartProps) {
-  // BUG 3 surfaces here: When amount is NaN (from undefined multiplier),
-  // the validation below throws an error
-  // The root cause is in config.ts returning undefined for REVENUE_MULTIPLIER
-
   const chartData = data.map((point) => {
-    // BUG 3: This validation throws when amount is NaN due to undefined multiplier
     if (isNaN(point.amount)) {
       throw new Error(`Invalid revenue amount for category: ${point.category}`);
     }

@@ -17,11 +17,6 @@ interface UserMetricsChartProps {
 }
 
 export function UserMetricsChart({ data }: UserMetricsChartProps) {
-  // BUG 1 surfaces here: When transformMetrics returns undefined for empty data,
-  // data prop becomes undefined, and calling .map() below crashes with
-  // "Cannot read property 'map' of undefined"
-
-  // Format data for the chart
   const chartData = data.map((point) => ({
     date: new Date(point.date).toLocaleDateString("en-US", {
       month: "short",

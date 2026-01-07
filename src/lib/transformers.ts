@@ -26,13 +26,8 @@ interface RawActivityResponse {
   }>;
 }
 
-// BUG 1: When API returns empty array, this returns wrong shape
-// Instead of returning { data: [] }, it returns undefined
-// This causes "Cannot read property 'map' of undefined" in UserMetricsChart
 export function transformMetrics(raw: RawMetricsResponse): { data: MetricDataPoint[] } {
-  // BUG: No check for empty array - returns undefined instead of { data: [] }
   if (!raw.data || raw.data.length === 0) {
-    // Should return { data: [] } but returns undefined
     return undefined as unknown as { data: MetricDataPoint[] };
   }
 
@@ -51,8 +46,6 @@ export function transformRevenue(
 ): RevenueDataPoint[] {
   return raw.categories.map((cat) => ({
     category: cat.name,
-    // BUG 3 continues: multiplier can be undefined, causing amount to be NaN
-    // which then fails when calling .toFixed() in RevenueChart
     amount: cat.revenue * (multiplier as number),
     growth: cat.yoy_growth,
   }));
@@ -68,16 +61,12 @@ export function transformActivity(raw: RawActivityResponse): ActivityItem[] {
   }));
 }
 
-// BUG 5: Off-by-one error in date filtering
-// Uses < instead of <= for end date, missing the last day
 export function filterMetricsByDateRange(
   metrics: MetricDataPoint[],
   dateRange: DateRange
 ): MetricDataPoint[] {
   return metrics.filter((metric) => {
     const metricDate = new Date(metric.date);
-    // BUG: Should be <= for end date, but uses <
-    // This causes the last day of the range to be excluded
     return metricDate >= dateRange.start && metricDate < dateRange.end;
   });
 }

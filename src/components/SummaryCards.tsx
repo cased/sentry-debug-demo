@@ -37,10 +37,6 @@ function StatCard({ title, value, change, icon }: StatCardProps) {
   );
 }
 
-// BUG 4 surfaces here: Race condition can cause data mismatch
-// When parallel fetches return out of order, summary stats may not match
-// the displayed chart data, showing incorrect totals
-
 export function SummaryCards({ data }: SummaryCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

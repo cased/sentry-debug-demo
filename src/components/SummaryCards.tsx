@@ -15,23 +15,19 @@ interface StatCardProps {
 
 function StatCard({ title, value, change, icon }: StatCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-neutral-50 border border-neutral-200 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{value}</p>
+          <p className="text-sm font-medium text-neutral-500">{title}</p>
+          <p className="mt-1 text-2xl font-semibold text-neutral-800">{value}</p>
           {change !== undefined && (
-            <p
-              className={`mt-1 text-sm ${
-                change >= 0 ? "text-green-600" : "text-red-600"
-              }`}
-            >
+            <p className="mt-1 text-sm text-neutral-600">
               {change >= 0 ? "+" : ""}
               {change.toFixed(1)}%
             </p>
           )}
         </div>
-        <div className="p-3 bg-blue-50 rounded-full text-blue-600">{icon}</div>
+        <div className="p-3 bg-neutral-200 text-neutral-600">{icon}</div>
       </div>
     </div>
   );

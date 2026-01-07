@@ -35,9 +35,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         this.props.fallback || (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="text-red-800 font-semibold">Something went wrong</h3>
-            <p className="text-red-600 text-sm mt-1">{this.state.error?.message}</p>
+          <div className="bg-neutral-100 border border-neutral-300 p-4">
+            <h3 className="text-neutral-800 font-semibold">Something went wrong</h3>
+            <p className="text-neutral-600 text-sm mt-1">{this.state.error?.message}</p>
           </div>
         )
       );

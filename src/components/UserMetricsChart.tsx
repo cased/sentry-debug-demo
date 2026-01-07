@@ -27,31 +27,30 @@ export function UserMetricsChart({ data }: UserMetricsChartProps) {
   }));
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">User Metrics</h2>
+    <div className="bg-neutral-50 border border-neutral-200 p-6">
+      <h2 className="text-lg font-semibold text-neutral-800 mb-4">User Metrics</h2>
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d4" />
             <XAxis
               dataKey="date"
-              stroke="#6b7280"
+              stroke="#737373"
               fontSize={12}
               tickLine={false}
             />
-            <YAxis stroke="#6b7280" fontSize={12} tickLine={false} />
+            <YAxis stroke="#737373" fontSize={12} tickLine={false} />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#fff",
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
+                backgroundColor: "#fafafa",
+                border: "1px solid #d4d4d4",
               }}
             />
             <Legend />
             <Line
               type="monotone"
               dataKey="users"
-              stroke="#3b82f6"
+              stroke="#525252"
               strokeWidth={2}
               dot={false}
               name="Users"
@@ -59,7 +58,7 @@ export function UserMetricsChart({ data }: UserMetricsChartProps) {
             <Line
               type="monotone"
               dataKey="sessions"
-              stroke="#10b981"
+              stroke="#a3a3a3"
               strokeWidth={2}
               dot={false}
               name="Sessions"

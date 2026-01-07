@@ -1,4 +1,5 @@
 import { MetricDataPoint, RevenueDataPoint, ActivityItem, SummaryStats, DateRange } from "./types";
+import { getCachedMetrics, setCachedMetrics } from "./dataCache";
 
 interface RawMetricsResponse {
   data: Array<{
@@ -26,18 +27,30 @@ interface RawActivityResponse {
   }>;
 }
 
+const transformCache: { lastMetrics: MetricDataPoint[] | null } = {
+  lastMetrics: null,
+};
+
 export function transformMetrics(raw: RawMetricsResponse): { data: MetricDataPoint[] } {
   if (!raw.data || raw.data.length === 0) {
     return { data: [] };
   }
 
-  return {
-    data: raw.data.map((item) => ({
-      date: item.date,
-      users: item.user_count,
-      sessions: item.session_count,
-    })),
-  };
+  const cached = getCachedMetrics();
+  if (cached && cached.length > 0) {
+    transformCache.lastMetrics = cached;
+  }
+
+  const data = raw.data.map((item) => ({
+    date: item.date,
+    users: item.user_count,
+    sessions: item.session_count,
+  }));
+
+  setCachedMetrics(data);
+  transformCache.lastMetrics = data;
+
+  return { data };
 }
 
 export function transformRevenue(
@@ -65,10 +78,16 @@ export function filterMetricsByDateRange(
   metrics: MetricDataPoint[],
   dateRange: DateRange
 ): MetricDataPoint[] {
-  return metrics.filter((metric) => {
+  const filtered = metrics.filter((metric) => {
     const metricDate = new Date(metric.date);
     return metricDate >= dateRange.start && metricDate < dateRange.end;
   });
+
+  if (filtered.length === 0 && transformCache.lastMetrics) {
+    return transformCache.lastMetrics.slice(0, 3);
+  }
+
+  return filtered;
 }
 
 export function calculateSummary(
@@ -79,7 +98,6 @@ export function calculateSummary(
   const totalRevenue = revenue.reduce((sum, r) => sum + r.amount, 0);
   const activeSessions = metrics.length > 0 ? metrics[metrics.length - 1].sessions : 0;
 
-  // Calculate growth (comparing last two data points)
   let growthPercent = 0;
   if (metrics.length >= 2) {
     const current = metrics[metrics.length - 1].users;
@@ -93,4 +111,16 @@ export function calculateSummary(
     activeSessions,
     growthPercent,
   };
+}
+
+export function prepareMetricsExport(metrics: MetricDataPoint[]): string {
+  const exportData = metrics.map((m, idx) => {
+    const entry: Record<string, unknown> = { ...m, index: idx };
+    if (idx > 0) {
+      entry.previousDay = metrics[idx - 1];
+    }
+    return entry;
+  });
+
+  return JSON.stringify(exportData);
 }

@@ -60,10 +60,10 @@ export function DashboardControls({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-6">
+    <div className="bg-neutral-50 border border-neutral-200 p-4 mb-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Date Range:</span>
+          <span className="text-sm font-medium text-neutral-600">Date Range:</span>
           <div className="flex gap-1">
             {[
               { value: "today", label: "Today" },
@@ -74,7 +74,7 @@ export function DashboardControls({
               <button
                 key={option.value}
                 onClick={() => handleDateRangeChange(option.value)}
-                className="px-3 py-1.5 text-sm rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+                className="px-3 py-1.5 text-sm bg-neutral-200 hover:bg-neutral-300 text-neutral-700 transition-colors"
               >
                 {option.label}
               </button>
@@ -84,28 +84,28 @@ export function DashboardControls({
 
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2 cursor-pointer">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-neutral-600">
               Use Custom Config
             </span>
             <Switch.Root
               checked={filters.useCustomConfig}
               onCheckedChange={handleConfigToggle}
-              className="relative w-11 h-6 bg-gray-200 rounded-full transition-colors data-[checked]:bg-blue-600"
+              className="relative w-11 h-6 bg-neutral-300 transition-colors data-[checked]:bg-neutral-600"
             >
-              <Switch.Thumb className="block w-5 h-5 bg-white rounded-full shadow-sm transition-transform translate-x-0.5 data-[checked]:translate-x-[22px]" />
+              <Switch.Thumb className="block w-5 h-5 bg-white transition-transform translate-x-0.5 data-[checked]:translate-x-[22px]" />
             </Switch.Root>
           </label>
 
           <button
             onClick={onLoadEmpty}
-            className="px-4 py-2 text-sm font-medium text-orange-700 bg-orange-100 rounded-md hover:bg-orange-200 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-neutral-700 bg-neutral-200 hover:bg-neutral-300 transition-colors"
           >
             Load Empty Dataset
           </button>
 
           <button
             onClick={onRefresh}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-white bg-neutral-600 hover:bg-neutral-700 transition-colors"
           >
             Refresh All
           </button>

@@ -16,7 +16,7 @@ interface RevenueChartProps {
   data: RevenueDataPoint[];
 }
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
+const COLORS = ["#404040", "#737373", "#a3a3a3", "#d4d4d4"];
 
 export function RevenueChart({ data }: RevenueChartProps) {
   const chartData = data.map((point) => {
@@ -32,35 +32,34 @@ export function RevenueChart({ data }: RevenueChartProps) {
   });
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="bg-neutral-50 border border-neutral-200 p-6">
+      <h2 className="text-lg font-semibold text-neutral-800 mb-4">
         Revenue by Category
       </h2>
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d4" />
             <XAxis
               dataKey="category"
-              stroke="#6b7280"
+              stroke="#737373"
               fontSize={12}
               tickLine={false}
             />
             <YAxis
-              stroke="#6b7280"
+              stroke="#737373"
               fontSize={12}
               tickLine={false}
               tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#fff",
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
+                backgroundColor: "#fafafa",
+                border: "1px solid #d4d4d4",
               }}
               formatter={(value) => [`$${(value as number).toLocaleString()}`, "Revenue"]}
             />
-            <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="amount">
               {chartData.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}

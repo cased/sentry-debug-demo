@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import * as Sentry from "@sentry/nextjs";
 import {
   DashboardData,
@@ -17,6 +17,8 @@ import {
   calculateSummary,
 } from "@/lib/transformers";
 import { getRevenueMultiplier } from "@/lib/config";
+import { getCachedMetrics, setCachedRevenue, invalidateCache } from "@/lib/dataCache";
+import { initializeFormatters } from "@/lib/formatters";
 
 interface UseDashboardDataResult {
   data: DashboardData | null;
@@ -26,17 +28,19 @@ interface UseDashboardDataResult {
   loadEmptyDataset: () => void;
 }
 
+const pendingRequests = new Map<string, Promise<Response>>();
+
 export function useDashboardData(filters: DashboardFilters): UseDashboardDataResult {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [forceEmpty, setForceEmpty] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
-
-  let currentRequestId = 0;
+  const requestIdRef = useRef(0);
+  const lastFiltersRef = useRef<DashboardFilters | null>(null);
 
   const fetchData = useCallback(async () => {
-    const requestId = ++currentRequestId;
+    const requestId = ++requestIdRef.current;
 
     Sentry.addBreadcrumb({
       category: "dashboard",
@@ -52,11 +56,20 @@ export function useDashboardData(filters: DashboardFilters): UseDashboardDataRes
       const startStr = filters.dateRange.start.toISOString().split("T")[0];
       const endStr = filters.dateRange.end.toISOString().split("T")[0];
 
+      const metricsKey = `metrics-${startStr}-${endStr}-${forceEmpty}`;
+      let metricsPromise = pendingRequests.get(metricsKey);
+      if (!metricsPromise) {
+        metricsPromise = fetch(`/api/metrics?start=${startStr}&end=${endStr}&empty=${forceEmpty}`);
+        pendingRequests.set(metricsKey, metricsPromise);
+      }
+
       const [metricsRes, revenueRes, activityRes] = await Promise.all([
-        fetch(`/api/metrics?start=${startStr}&end=${endStr}&empty=${forceEmpty}`),
+        metricsPromise,
         fetch("/api/revenue"),
         fetch("/api/activity"),
       ]);
+
+      pendingRequests.delete(metricsKey);
 
       if (!metricsRes.ok || !revenueRes.ok || !activityRes.ok) {
         throw new Error("Failed to fetch dashboard data");
@@ -68,17 +81,31 @@ export function useDashboardData(filters: DashboardFilters): UseDashboardDataRes
         activityRes.json(),
       ]);
 
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
+
       const metricsResult = transformMetrics(rawMetrics);
-      const metrics: MetricDataPoint[] = metricsResult.data;
+      let metrics: MetricDataPoint[] = metricsResult.data;
+
+      if (metrics.length === 0) {
+        const cached = getCachedMetrics();
+        if (cached) {
+          metrics = cached;
+        }
+      }
 
       const multiplier = getRevenueMultiplier(filters.useCustomConfig);
       const revenue: RevenueDataPoint[] = transformRevenue(rawRevenue, multiplier);
+      setCachedRevenue(revenue);
 
       const activity: ActivityItem[] = transformActivity(rawActivity);
 
       const filteredMetrics = filterMetricsByDateRange(metrics, filters.dateRange);
 
       const summary = calculateSummary(filteredMetrics, revenue);
+
+      lastFiltersRef.current = filters;
 
       setData({
         metrics: filteredMetrics,
@@ -93,8 +120,11 @@ export function useDashboardData(filters: DashboardFilters): UseDashboardDataRes
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [forceEmpty, refreshCounter]);
+  }, [filters, forceEmpty, refreshCounter]);
+
+  useEffect(() => {
+    initializeFormatters();
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -106,6 +136,7 @@ export function useDashboardData(filters: DashboardFilters): UseDashboardDataRes
       message: "Manual refresh triggered",
       level: "info",
     });
+    invalidateCache();
     setRefreshCounter((c) => c + 1);
   }, []);
 
